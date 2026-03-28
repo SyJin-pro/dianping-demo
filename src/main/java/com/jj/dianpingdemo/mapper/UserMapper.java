@@ -13,4 +13,7 @@ public interface UserMapper {
 
     @Select("SELECT id, phone, nick_name AS nickName FROM tb_user WHERE id = #{id}")
     User selectById(Long id);
+
+    @Select("SELECT id, phone, nick_name AS nickName FROM tb_user WHERE phone = #{phone} LIMIT 1")
+    User selectByPhone(String phone);
 }
