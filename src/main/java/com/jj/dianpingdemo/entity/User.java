@@ -1,11 +1,13 @@
 package com.jj.dianpingdemo.entity;
 
+import java.io.Serializable;
+
 /**
  * @author: JSY
  * @version: 1.0
  */
 // 用户实体类
-public class User {
+public class User implements Serializable {
     private Long id;
     private String phone;
     private String nickName;
