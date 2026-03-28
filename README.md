@@ -20,3 +20,13 @@
 验收结论：请求可达、数据库可查、结果可返回
 已知依赖：MySQL 库名/表名/字段约定
 
+目前已验收接口：
+- GET /user/{id}
+- POST /user/code
+- POST /user/login
+
+发送验证码：
+POST http://localhost:8081/user/code?phone=13800000000
+登录：
+POST http://localhost:8081/user/login?phone=13800000000&code=
+
