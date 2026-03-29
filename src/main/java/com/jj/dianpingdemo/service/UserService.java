@@ -3,6 +3,7 @@ package com.jj.dianpingdemo.service;
 //import com.jj.dianpingdemo.entity.LoginResult;
 import com.jj.dianpingdemo.entity.LoginResult;
 import com.jj.dianpingdemo.entity.User;
+import com.jj.dianpingdemo.entity.UserDto;
 import com.jj.dianpingdemo.mapper.UserMapper;
 import com.jj.dianpingdemo.util.SessionConstants;
 import org.springframework.stereotype.Service;
@@ -94,5 +95,16 @@ public class UserService {
 
     public void logout(HttpSession session) {
         session.invalidate();
+    }
+
+    public UserDto toDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setPhone(user.getPhone());
+        dto.setNickName(user.getNickName());
+        return dto;
     }
 }

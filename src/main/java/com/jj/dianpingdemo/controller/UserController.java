@@ -5,6 +5,7 @@ package com.jj.dianpingdemo.controller;
 import com.jj.dianpingdemo.entity.LoginResult;
 import com.jj.dianpingdemo.entity.Result;
 import com.jj.dianpingdemo.entity.User;
+import com.jj.dianpingdemo.entity.UserDto;
 import com.jj.dianpingdemo.service.UserService;
 import com.jj.dianpingdemo.util.UserHolder;
 import jakarta.servlet.http.HttpSession;
@@ -61,13 +62,13 @@ public class UserController {
 //    }
 
     @GetMapping("/user/me")
-    public Result<User> me() {
+    public Result<UserDto> me() {
         User user = UserHolder.getUser();
         if (user == null) {
             System.out.println("这里不应该出现，说明 LoginInterceptor 没有正确拦截到未登录的请求");
             return Result.fail("未登录");
         }
-        return Result.ok("查询成功", user);
+        return Result.ok("查询成功", userService.toDto(user));
     }
 
     @PostMapping("/user/logout")
