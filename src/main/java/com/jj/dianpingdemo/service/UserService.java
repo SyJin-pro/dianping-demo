@@ -4,6 +4,7 @@ package com.jj.dianpingdemo.service;
 import com.jj.dianpingdemo.entity.LoginResult;
 import com.jj.dianpingdemo.entity.User;
 import com.jj.dianpingdemo.mapper.UserMapper;
+import com.jj.dianpingdemo.util.SessionConstants;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpSession;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class UserService {
     private static final String MOCK_CODE = "123456";
-    private static final String SESSION_USER_KEY = "loginUser";
+    //private static final String SESSION_USER_KEY = "loginUser";
 
     private final UserMapper userMapper;
 
@@ -73,18 +74,25 @@ public class UserService {
         }
         // MVP：先按手机号查用户，不存在则创建可后续补
         User user = userMapper.selectByPhone(phone);
+        System.out.println("[login] sessionId=" + session.getId() + ", user=" + user);
         if (user == null) {
             return false;
         }
-        session.setAttribute(SESSION_USER_KEY, user);
+        session.setAttribute(SessionConstants.LOGIN_USER_KEY, user);
+        System.out.println("[login] afterSet=" + session.getAttribute(SessionConstants.LOGIN_USER_KEY));
         return true;
     }
 
     public User currentUser(HttpSession session) {
-        Object val = session.getAttribute(SESSION_USER_KEY);
+        Object val = session.getAttribute(SessionConstants.LOGIN_USER_KEY);
+        //System.out.println("[me] sessionId=" + session.getId() + ", valueType=" + (val == null ? "null" : val.getClass().getName()) + ", value=" + val);
         if (val instanceof User user) {
             return user;
         }
         return null;
+    }
+
+    public void logout(HttpSession session) {
+        session.invalidate();
     }
 }

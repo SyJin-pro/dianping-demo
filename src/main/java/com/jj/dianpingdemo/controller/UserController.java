@@ -6,6 +6,7 @@ import com.jj.dianpingdemo.entity.LoginResult;
 import com.jj.dianpingdemo.entity.Result;
 import com.jj.dianpingdemo.entity.User;
 import com.jj.dianpingdemo.service.UserService;
+import com.jj.dianpingdemo.util.UserHolder;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,12 +51,28 @@ public class UserController {
         return Result.ok("登录成功（mock）");
     }
 
+//    @GetMapping("/user/me")
+//    public Result<User> me(HttpSession session) {
+//        User user = userService.currentUser(session);
+//        if (user == null) {
+//            return Result.fail("未登录");
+//        }
+//        return Result.ok("查询成功", user);
+//    }
+
     @GetMapping("/user/me")
-    public Result<User> me(HttpSession session) {
-        User user = userService.currentUser(session);
+    public Result<User> me() {
+        User user = UserHolder.getUser();
         if (user == null) {
+            System.out.println("这里不应该出现，说明 LoginInterceptor 没有正确拦截到未登录的请求");
             return Result.fail("未登录");
         }
         return Result.ok("查询成功", user);
+    }
+
+    @PostMapping("/user/logout")
+    public Result<Void> logout(HttpSession session) {
+        userService.logout(session);
+        return Result.ok("退出登录成功");
     }
 }

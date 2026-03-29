@@ -109,3 +109,6 @@
 你已经完成了“从 0 到 1”的最关键闭环：可运行 + 可登录 + 状态可持久化。  
 当前项目已具备进入下一阶段（登出、TTL、拦截器鉴权、业务缓存细化）的基础条件。
 
+新增logout登出逻辑
+
+util/UserHolder.java：新增UserHolder工具类，使用ThreadLocal存储当前用户信息，提供setUser/getUser方法。
