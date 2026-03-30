@@ -1,6 +1,7 @@
 package com.jj.dianpingdemo.util;
 
 import com.jj.dianpingdemo.entity.User;
+import com.jj.dianpingdemo.entity.UserDto;
 
 /**
  * @author: JSY
@@ -8,16 +9,16 @@ import com.jj.dianpingdemo.entity.User;
  */
 public final class UserHolder {
 
-    private static final ThreadLocal<User> TL = new ThreadLocal<>();
+    private static final ThreadLocal<UserDto> TL = new ThreadLocal<>();
 
     private UserHolder() {
     }
 
-    public static void saveUser(User user) {
+    public static void saveUser(UserDto user) {
         TL.set(user);
     }
 
-    public static User getUser() {
+    public static UserDto getUser() {
         return TL.get();
     }
 
