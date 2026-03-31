@@ -124,10 +124,12 @@ public String login(String phone, String code) {
         return null;
     }
 
-    String cacheCode = stringRedisTemplate.opsForValue().get(SessionConstants.LOGIN_CODE_KEY_PREFIX + phone);
-    if (cacheCode == null || !cacheCode.equals(code)) {
-        return null;
-    }
+    // ===================== 临时关闭：注释掉验证码校验 =====================
+    // String cacheCode = stringRedisTemplate.opsForValue().get(SessionConstants.LOGIN_CODE_KEY_PREFIX + phone);
+    // if (cacheCode == null || !cacheCode.equals(code)) {
+    //     return null;
+    // }
+    // ====================================================================
 
     User user = userMapper.selectByPhone(phone);
     if (user == null) {
@@ -154,7 +156,8 @@ public String login(String phone, String code) {
     stringRedisTemplate.expire(tokenKey, SessionConstants.LOGIN_USER_TTL.toMinutes(), TimeUnit.MINUTES);
 
     // 验证码一次性消费
-    stringRedisTemplate.delete(SessionConstants.LOGIN_CODE_KEY_PREFIX + phone);
+    // 验证码已关闭，删除逻辑也注释
+    // stringRedisTemplate.delete(SessionConstants.LOGIN_CODE_KEY_PREFIX + phone);
     return token;
 }
 

@@ -19,6 +19,8 @@ public interface VoucherOrderMapper {
     int insert(VoucherOrder order);
 
     // 校验一人一单（逻辑不变）
-    @Select("SELECT id FROM tb_voucher_order WHERE user_id = #{userId} AND voucher_id = #{voucherId}")
-    Long existsByUserIdAndVoucherId(@Param("userId") Long userId, @Param("voucherId") Long voucherId);
+//    @Select("SELECT id FROM tb_voucher_order WHERE user_id = #{userId} AND voucher_id = #{voucherId}")
+//    Long existsByUserIdAndVoucherId(@Param("userId") Long userId, @Param("voucherId") Long voucherId);
+    @Select("SELECT COUNT(*) FROM tb_voucher_order WHERE user_id = #{userId} AND voucher_id = #{voucherId}")
+    int countByUserIdAndVoucherId(Long userId, Long voucherId);
 }

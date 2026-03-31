@@ -5,6 +5,8 @@ import com.jj.dianpingdemo.mapper.SeckillVoucherMapper;
 import com.jj.dianpingdemo.mapper.VoucherMapper;
 import com.jj.dianpingdemo.mapper.VoucherOrderMapper;
 import com.jj.dianpingdemo.util.UserHolder;
+import jakarta.annotation.Resource;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -81,8 +83,7 @@ public class VoucherService {
     }
 
     // ==================== 秒杀抢购核心方法 ====================
-    @Transactional
-    public Result seckillVoucher(Long voucherId) {
+    public  Result seckillVoucher(Long voucherId) {
         // 1. 获取当前登录用户（从ThreadLocal）
         UserDto user = UserHolder.getUser();
         if (user == null) {
@@ -90,13 +91,20 @@ public class VoucherService {
         }
         Long userId = user.getId();
 
-        // 2. 查询秒杀券信息
-        SeckillVoucher seckillVoucher = seckillVoucherMapper.selectByVoucherId(voucherId);
-        if (seckillVoucher == null) {
-            return Result.fail("优惠券不存在");
+        // 先加锁 → 再执行带事务的核心逻辑
+        synchronized (userId.toString().intern()) {
+//            return createVoucherOrder(voucherId, userId);
+            VoucherService proxy = (VoucherService) AopContext.currentProxy();
+            return proxy.createVoucherOrder(voucherId, userId);
         }
+    }
 
-        // 3. 校验秒杀时间
+    // 🔥 独立的事务方法：先加锁，再开启事务
+    @Transactional
+    public Result createVoucherOrder(Long voucherId, Long userId) {
+        // 2. 查询秒杀券
+        SeckillVoucher seckillVoucher = seckillVoucherMapper.selectByVoucherId(voucherId);
+        // 3. 校验时间
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(seckillVoucher.getBeginTime())) {
             return Result.fail("秒杀尚未开始");
@@ -104,42 +112,33 @@ public class VoucherService {
         if (now.isAfter(seckillVoucher.getEndTime())) {
             return Result.fail("秒杀已经结束");
         }
-
         // 4. 校验库存
         if (seckillVoucher.getStock() < 1) {
             return Result.fail("库存不足");
         }
 
-        // ===================== 【危险！模拟并发延迟】 =====================
-        // 这里卡住100ms，让100个请求同时查到库存=10，然后一起扣库存
-        try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
-        // =================================================================
-
-        // 5. 一人一单：判断用户是否已经购买过
-        Long orderId = voucherOrderMapper.existsByUserIdAndVoucherId(userId, voucherId);
-        if (orderId != null) {
+        // 5. 一人一单查询（此时事务刚开，能读到最新数据）
+        int count = voucherOrderMapper.countByUserIdAndVoucherId(userId, voucherId);
+        if (count > 0) {
             return Result.fail("每人限购一张");
         }
 
-        // ===================== 【危险！再卡一次，放大一人一单漏洞】 =====================
-        try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
-        // ============================================================================
-
-        // 6. 扣减库存
+        // 6. 扣库存
         int rows = seckillVoucherMapper.deductStock(voucherId);
         if (rows == 0) {
             return Result.fail("库存不足");
         }
 
-        // 7. 创建订单（订单ID先用雪花算法，这里先简单用时间戳）
+        // 7. 创建订单
         VoucherOrder order = new VoucherOrder();
-        order.setId(System.currentTimeMillis()); // 临时订单ID
+        order.setId(System.currentTimeMillis());
         order.setUserId(userId);
         order.setVoucherId(voucherId);
-        order.setStatus(1); // 未支付
+        order.setStatus(1);
         voucherOrderMapper.insert(order);
 
-        // 8. 返回成功
+        int i = 1 / 0;
+
         return Result.ok("秒杀成功！订单号：" + order.getId());
     }
 }
