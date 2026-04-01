@@ -7,6 +7,8 @@ import com.jj.dianpingdemo.mapper.VoucherOrderMapper;
 import com.jj.dianpingdemo.util.UserHolder;
 import jakarta.annotation.Resource;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -24,6 +26,10 @@ public class VoucherService {
     private final SeckillVoucherMapper seckillVoucherMapper;
 
     private final VoucherOrderMapper voucherOrderMapper;
+
+    @Lazy
+    @Autowired
+    private VoucherService voucherService;
 
     public VoucherService(VoucherMapper voucherMapper,
                           SeckillVoucherMapper seckillVoucherMapper,
@@ -93,9 +99,9 @@ public class VoucherService {
 
         // 先加锁 → 再执行带事务的核心逻辑
         synchronized (userId.toString().intern()) {
-//            return createVoucherOrder(voucherId, userId);
-            VoucherService proxy = (VoucherService) AopContext.currentProxy();
-            return proxy.createVoucherOrder(voucherId, userId);
+            return voucherService.createVoucherOrder(voucherId, userId);
+//            VoucherService proxy = (VoucherService) AopContext.currentProxy();
+//            return proxy.createVoucherOrder(voucherId, userId);
         }
     }
 
@@ -136,8 +142,6 @@ public class VoucherService {
         order.setVoucherId(voucherId);
         order.setStatus(1);
         voucherOrderMapper.insert(order);
-
-        int i = 1 / 0;
 
         return Result.ok("秒杀成功！订单号：" + order.getId());
     }
